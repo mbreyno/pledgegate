@@ -1,0 +1,12 @@
+.jdk
+.gradle
+build
+run
+gradle
+src
+gradlew
+gradlew.bat
+*.gradle
+gradle.properties
+LICENSE
+README.md

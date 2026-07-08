@@ -1,0 +1,30 @@
+{
+	"schemaVersion": 1,
+	"id": "pledgegate",
+	"version": "${version}",
+	"name": "PledgeGate",
+	"description": "Requires players to read and agree to your server rules before they can play. Server-side only — players don't need to install anything.",
+	"authors": [
+		"Michael Reynolds"
+	],
+	"contact": {
+		"homepage": "https://pledgegate.vercel.app",
+		"sources": "https://github.com/mbreyno/pledgegate"
+	},
+	"license": "MIT",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.michaelreynolds.pledgegate.PledgeGate"
+		]
+	},
+	"mixins": [
+		"pledgegate.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": ">=26.1.2 <26.3",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}

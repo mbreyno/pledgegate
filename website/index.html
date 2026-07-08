@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PledgeGate — Minecraft Server Rules Mod for Fabric 26.1 &amp; 26.2</title>
+<meta name="description" content="Free Fabric mod that makes players agree to your Minecraft server rules before playing. Server-side only — no client install. Show rules once or weekly, kick on decline.">
+<link rel="canonical" href="https://pledgegate.vercel.app/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://pledgegate.vercel.app/">
+<meta property="og:title" content="PledgeGate — Minecraft Server Rules Mod for Fabric">
+<meta property="og:description" content="Players must read and agree to your server rules before they can play. Server-side only — vanilla clients see a native rules screen with a real checkbox.">
+<meta property="og:image" content="https://pledgegate.vercel.app/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="PledgeGate — Minecraft Server Rules Mod for Fabric">
+<meta name="twitter:description" content="Make players agree to your server rules before they can play. Server-side only, nothing for players to install.">
+<meta name="twitter:image" content="https://pledgegate.vercel.app/og.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "PledgeGate",
+  "applicationCategory": "GameApplication",
+  "applicationSubCategory": "Minecraft Fabric server mod",
+  "operatingSystem": "Windows, macOS, Linux (Minecraft Java Edition 26.1.2 or 26.2 server with Fabric)",
+  "softwareVersion": "1.1.1",
+  "license": "https://opensource.org/licenses/MIT",
+  "url": "https://pledgegate.vercel.app/",
+  "downloadUrl": "https://pledgegate.vercel.app/pledgegate-1.1.1.jar",
+  "description": "A server-side Fabric mod for Minecraft that requires players to read and agree to the server rules before they can play. Displays a native dialog with a checkbox; supports one-time or recurring prompts and kicks players who decline.",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Is PledgeGate a plugin or a mod?",
+      "acceptedAnswer": { "@type": "Answer", "text": "PledgeGate is a Fabric mod, but it fills the same role a rules plugin fills on Bukkit, Spigot, or Paper servers: it gates entry behind a rules agreement. If you run a Fabric server and want a rules plugin, this is the equivalent — one jar in the mods folder." }
+    },
+    {
+      "@type": "Question",
+      "name": "Do players need to install anything?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. The rules screen is native Minecraft UI streamed from the server. Vanilla launcher, vanilla client — it just works." }
+    },
+    {
+      "@type": "Question",
+      "name": "What happens if a player declines the rules?",
+      "acceptedAnswer": { "@type": "Answer", "text": "They are kicked from the server with a message you control. The same happens if they ignore the prompt past a configurable timeout (5 minutes by default)." }
+    },
+    {
+      "@type": "Question",
+      "name": "Can the rules pop up periodically instead of just once?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Set displayMode to \"interval\" and choose how often with intervalDays — every 3 days, weekly, or any fraction like 0.5 for twice a day." }
+    },
+    {
+      "@type": "Question",
+      "name": "What happens when I change the rules?",
+      "acceptedAnswer": { "@type": "Answer", "text": "By default every player must agree to the new rules on their next join. You can turn this off with the repromptWhenRulesChange setting." }
+    },
+    {
+      "@type": "Question",
+      "name": "Where are rule acceptances stored?",
+      "acceptedAnswer": { "@type": "Answer", "text": "In config/pledgegate/acceptances.json on the server — each player's UUID, name, timestamp, and which version of the rules they accepted. Delete the file or use /pledgegate reset to clear them." }
+    }
+  ]
+}
+</script>
+<style>
+  :root {
+    --bg: #0e1411;
+    --bg-card: #151d18;
+    --bg-code: #0a0f0c;
+    --border: #24312a;
+    --text: #d8e4dc;
+    --text-dim: #8fa398;
+    --accent: #55d97c;
+    --accent-dim: #2f7a48;
+    --warn: #e8c15a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.65;
+    font-size: 17px;
+  }
+  main { max-width: 780px; margin: 0 auto; padding: 0 24px 96px; }
+
+  header {
+    text-align: center;
+    padding: 88px 24px 56px;
+    border-bottom: 1px solid var(--border);
+    background:
+      radial-gradient(ellipse 60% 50% at 50% 0%, rgba(85, 217, 124, 0.08), transparent);
+  }
+  .logo {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 44px;
+    font-weight: 700;
+    letter-spacing: -1px;
+  }
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 14px;
+    margin-top: 28px;
+  }
+  .feature {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+  }
+  .feature .fi { font-size: 22px; display: block; margin-bottom: 8px; }
+  .feature h3 { font-size: 16px; margin-bottom: 4px; letter-spacing: -0.2px; }
+  .feature p { color: var(--text-dim); font-size: 14.5px; line-height: 1.5; }
+  .faq-item { padding: 18px 0; border-top: 1px solid var(--border); }
+  .faq-item:last-of-type { border-bottom: 1px solid var(--border); }
+  .faq-item h3 { font-size: 17px; margin-bottom: 6px; }
+  .faq-item h3::before { content: "Q. "; color: var(--accent); font-family: ui-monospace, Menlo, monospace; }
+  .faq-item p { color: var(--text-dim); font-size: 15.5px; }
+  .logo .gate { color: var(--accent); }
+  .tagline { font-size: 20px; color: var(--text-dim); margin-top: 12px; max-width: 540px; margin-left: auto; margin-right: auto; }
+  .badges { margin-top: 24px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .badge {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13px;
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--text-dim);
+    background: var(--bg-card);
+  }
+  .badge.hl { color: var(--accent); border-color: var(--accent-dim); }
+  .cta { margin-top: 32px; display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-block;
+    padding: 12px 26px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 16px;
+  }
+  .btn-primary { background: var(--accent); color: #08130c; }
+  .btn-primary:hover { filter: brightness(1.1); }
+  .btn-secondary { border: 1px solid var(--border); color: var(--text); background: var(--bg-card); }
+  .btn-secondary:hover { border-color: var(--accent-dim); }
+  .cta-note { margin-top: 14px; font-size: 14px; color: var(--text-dim); }
+
+  h2 {
+    font-size: 26px;
+    margin: 72px 0 8px;
+    padding-top: 12px;
+    letter-spacing: -0.3px;
+  }
+  h2::before { content: "# "; color: var(--accent); font-family: ui-monospace, Menlo, monospace; }
+  .section-intro { color: var(--text-dim); margin-bottom: 24px; }
+  p + p { margin-top: 14px; }
+
+  .steps { counter-reset: step; margin-top: 24px; }
+  .step {
+    display: flex; gap: 18px;
+    padding: 18px 0;
+    border-top: 1px solid var(--border);
+  }
+  .step:last-child { border-bottom: 1px solid var(--border); }
+  .step::before {
+    counter-increment: step;
+    content: counter(step);
+    flex: 0 0 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--accent-dim);
+    color: var(--accent);
+    font-weight: 700;
+    font-family: ui-monospace, Menlo, monospace;
+  }
+  .step strong { display: block; margin-bottom: 2px; }
+  .step p { color: var(--text-dim); font-size: 15.5px; }
+
+  code {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.88em;
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 2px 6px;
+    color: #a8d8b8;
+    white-space: nowrap;
+  }
+  pre {
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    overflow-x: auto;
+    margin: 20px 0;
+    line-height: 1.5;
+  }
+  pre code { background: none; border: none; padding: 0; white-space: pre; font-size: 13.5px; }
+  .json-key { color: #7fc8f5; }
+  .json-str { color: #a8d8b8; }
+  .json-num { color: #e8c15a; }
+  .json-bool { color: #d8a0f0; }
+  .json-comment { color: #5a6e62; }
+
+  table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 15px; }
+  th {
+    text-align: left;
+    color: var(--text-dim);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 10px 14px;
+    border-bottom: 2px solid var(--border);
+  }
+  td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  td:first-child { white-space: nowrap; }
+  .table-wrap { overflow-x: auto; }
+
+  .callout {
+    display: flex; gap: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 16px 18px;
+    margin: 24px 0;
+    font-size: 15.5px;
+  }
+  .callout.warn { border-left-color: var(--warn); }
+  .callout p { color: var(--text-dim); }
+  .callout strong { color: var(--text); }
+
+  .dialog-demo {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px 24px;
+    margin: 28px auto;
+    max-width: 440px;
+    text-align: center;
+    font-size: 15px;
+  }
+  .dialog-demo .dtitle { font-weight: 700; font-size: 17px; margin-bottom: 14px; }
+  .dialog-demo .drules { color: var(--text-dim); text-align: left; margin: 0 auto 18px; max-width: 320px; }
+  .dialog-demo .drules div { padding: 3px 0; }
+  .dialog-demo .rule-num { color: var(--warn); }
+  .dialog-demo .dcheck { margin-bottom: 18px; }
+  .dialog-demo .box {
+    display: inline-block; width: 15px; height: 15px;
+    border: 2px solid var(--text-dim); border-radius: 3px;
+    vertical-align: -2px; margin-right: 8px;
+    color: var(--accent); line-height: 15px; font-weight: 700;
+  }
+  .dialog-demo .dbtns { display: flex; flex-direction: column; gap: 8px; max-width: 260px; margin: 0 auto; }
+  .dialog-demo .dbtn {
+    padding: 9px 0; border-radius: 4px;
+    border: 1px solid var(--border);
+    background: #1d2822; font-weight: 600;
+  }
+  .dialog-demo .dbtn.go { border-color: var(--accent-dim); color: var(--accent); }
+  .demo-caption { text-align: center; color: var(--text-dim); font-size: 13.5px; margin-top: -16px; margin-bottom: 24px; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+    padding: 32px 24px;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 14px;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+  @media (max-width: 600px) {
+    body { font-size: 16px; }
+    .logo { font-size: 34px; }
+    header { padding-top: 56px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1 class="logo">Pledge<span class="gate">Gate</span></h1>
+  <p class="tagline">The server rules mod for Fabric: players must read and agree to your rules before they can play. Server&#8209;side only — your players install nothing.</p>
+  <div class="badges">
+    <span class="badge hl">Minecraft 26.1.2 – 26.2</span>
+    <span class="badge">Fabric</span>
+    <span class="badge">Server-side only</span>
+    <span class="badge">MIT License</span>
+  </div>
+  <div class="cta">
+    <a class="btn btn-primary" href="pledgegate-1.1.1.jar" download>Download pledgegate&#8209;1.1.1.jar</a>
+    <a class="btn btn-secondary" href="#install">Install Guide</a>
+  </div>
+  <p class="cta-note">Requires <a href="https://modrinth.com/mod/fabric-api" style="color: var(--accent);">Fabric API</a> on the server.</p>
+</header>
+
+<main>
+
+<h2 id="features">Features</h2>
+<div class="features">
+  <div class="feature"><span class="fi">☑️</span><h3>A real checkbox agreement</h3><p>Native Minecraft dialog with a checkbox and buttons — not a wall of chat text players scroll past. Can't be dismissed with Escape.</p></div>
+  <div class="feature"><span class="fi">🧩</span><h3>100% server-side</h3><p>Works with completely vanilla clients. Players on the standard launcher see the rules screen with nothing to install.</p></div>
+  <div class="feature"><span class="fi">🔁</span><h3>Once, weekly, or on your schedule</h3><p>Show the rules a single time, or re-prompt every few days, weekly, or any interval you choose.</p></div>
+  <div class="feature"><span class="fi">✏️</span><h3>Re-agree when rules change</h3><p>Edit your rules and every player automatically sees the new version on their next join.</p></div>
+  <div class="feature"><span class="fi">🥾</span><h3>Automatic enforcement</h3><p>Decline = kicked. Ignore the prompt = kicked after a timeout. No chat or commands until they agree.</p></div>
+  <div class="feature"><span class="fi">🎨</span><h3>Every word customizable</h3><p>Rules, buttons, kick messages, and welcome text are all yours to edit, with full color-code support.</p></div>
+  <div class="feature"><span class="fi">⚡</span><h3>Live reload</h3><p>Change the config and apply it with <code>/pledgegate reload</code> — no server restart, no downtime.</p></div>
+  <div class="feature"><span class="fi">📜</span><h3>Acceptance records</h3><p>Who agreed, when, and to which version of the rules — stored in a plain JSON file you can audit or reset.</p></div>
+</div>
+
+<h2 id="how">How it works</h2>
+<p class="section-intro">PledgeGate uses Minecraft's built-in dialog system, so even completely vanilla clients see a real popup with a checkbox and buttons the moment they join:</p>
+
+<div class="dialog-demo">
+  <div class="dtitle">Server Rules</div>
+  <div class="drules">
+    <div><span class="rule-num">1.</span> Please treat all players respectfully. No bullying, personal insults, hate speech, or verbal abuse.</div>
+    <div><span class="rule-num">2.</span> Please keep your language clean and family-friendly in chat and/or voice chat.</div>
+    <div><span class="rule-num">3.</span> No cheating, hacking, or exploiting bugs.</div>
+    <div><span class="rule-num">4.</span> No advertising other servers.</div>
+  </div>
+  <div class="dcheck"><span class="box">✓</span>I have read and agree to the rules</div>
+  <div class="dbtns">
+    <div class="dbtn go">Enter Server</div>
+    <div class="dbtn">I Do Not Agree</div>
+  </div>
+</div>
+<p class="demo-caption">A recreation of what players see in-game.</p>
+
+<ul style="color: var(--text-dim); padding-left: 24px;">
+  <li>Players must <strong style="color: var(--text);">tick the checkbox</strong> and click <strong style="color: var(--text);">Enter Server</strong> to play.</li>
+  <li>Clicking <strong style="color: var(--text);">I Do Not Agree</strong> kicks them with a message you control.</li>
+  <li>The dialog can't be closed with Escape, and players can't chat or run commands until they agree.</li>
+  <li>Ignoring the prompt too long (default 5 minutes) also kicks them.</li>
+</ul>
+
+<h2 id="install">Installation</h2>
+<div class="steps">
+  <div class="step"><div><strong>Set up a Fabric server</strong><p>Install the <a href="https://fabricmc.net/use/server/" style="color: var(--accent);">Fabric server launcher</a> for Minecraft 26.1.2 or 26.2, with Java 25.</p></div></div>
+  <div class="step"><div><strong>Drop in two jars</strong><p>Put <code>pledgegate-1.1.1.jar</code> and <a href="https://modrinth.com/mod/fabric-api" style="color: var(--accent);">Fabric API</a> into the server's <code>mods/</code> folder.</p></div></div>
+  <div class="step"><div><strong>Start the server once</strong><p>PledgeGate creates <code>config/pledgegate/config.json</code> with example rules.</p></div></div>
+  <div class="step"><div><strong>Write your rules</strong><p>Edit the config, then run <code>/pledgegate reload</code> in the server console — no restart needed.</p></div></div>
+</div>
+
+<h2 id="editing">Editing your rules</h2>
+<p class="section-intro">Your rules live in a plain text file on the server. Changing them takes about a minute:</p>
+
+<div class="steps">
+  <div class="step"><div><strong>Open the config file</strong><p>On the server, open <code>config/pledgegate/config.json</code> in any text editor (Notepad, TextEdit, VS Code, or your host's file manager).</p></div></div>
+  <div class="step"><div><strong>Edit the <code>rules</code> list</strong><p>Each rule is one line inside the square brackets, wrapped in double quotes, with a comma after every line <em>except the last</em>. Add, remove, or reword lines freely.</p></div></div>
+  <div class="step"><div><strong>Save, then reload</strong><p>Run <code>/pledgegate reload</code> in the server console or as an op in-game. No restart needed — you'll see a confirmation with the rule count.</p></div></div>
+  <div class="step"><div><strong>Check your work</strong><p>Run <code>/pledgegate preview</code> in-game to see the dialog exactly as players will, without affecting your own acceptance.</p></div></div>
+</div>
+
+<p style="margin-top: 24px;">For example, to add a fifth rule:</p>
+
+<pre><code><span class="json-key">"rules"</span>: [
+  <span class="json-str">"&amp;e1. &amp;fPlease treat all players respectfully. No bullying, personal insults, hate speech, or verbal abuse."</span>,
+  <span class="json-str">"&amp;e2. &amp;fPlease keep your language clean and family-friendly in chat and/or voice chat."</span>,
+  <span class="json-str">"&amp;e3. &amp;fNo cheating, hacking, or exploiting bugs."</span>,
+  <span class="json-str">"&amp;e4. &amp;fNo advertising other servers."</span>,
+  <span class="json-str">"&amp;e5. &amp;fNo griefing or stealing from other players."</span>
+],</code></pre>
+
+<div class="callout">
+  <p><strong>Formatting tips:</strong> start a line with <code>&amp;e1.</code> to get a yellow number, and use <code>&amp;f</code> to switch back to white text. Blank-looking spacer lines are fine too — just add <code>" "</code> as its own entry. If a rule needs a quotation mark inside it, write it as <code>\"</code>.</p>
+</div>
+
+<div class="callout warn">
+  <p><strong>After you save and reload, everyone re-agrees.</strong> Because rules changed, every player is shown the new rules on their next join (that's the <code>repromptWhenRulesChange</code> setting — set it to <code>false</code> if you don't want that). If the server won't reload the config, a missing or extra comma in the JSON is the usual culprit — paste the file into <a href="https://jsonlint.com" style="color: var(--accent);">jsonlint.com</a> to find it.</p>
+</div>
+
+<h2 id="config">Configuration</h2>
+<p class="section-intro">Everything lives in <code>config/pledgegate/config.json</code>:</p>
+
+<pre><code>{
+  <span class="json-key">"title"</span>: <span class="json-str">"Server Rules"</span>,
+  <span class="json-key">"rules"</span>: [
+    <span class="json-str">"&amp;e1. &amp;fPlease treat all players respectfully. No bullying, personal insults, hate speech, or verbal abuse."</span>,
+    <span class="json-str">"&amp;e2. &amp;fPlease keep your language clean and family-friendly in chat and/or voice chat."</span>,
+    <span class="json-str">"&amp;e3. &amp;fNo cheating, hacking, or exploiting bugs."</span>,
+    <span class="json-str">"&amp;e4. &amp;fNo advertising other servers."</span>
+  ],
+  <span class="json-key">"displayMode"</span>: <span class="json-str">"once"</span>,          <span class="json-comment">// "once" or "interval"</span>
+  <span class="json-key">"intervalDays"</span>: <span class="json-num">7.0</span>,
+  <span class="json-key">"repromptWhenRulesChange"</span>: <span class="json-bool">true</span>,
+  <span class="json-key">"agreeTimeoutSeconds"</span>: <span class="json-num">300</span>,
+  <span class="json-key">"blockChatWhilePending"</span>: <span class="json-bool">true</span>,
+  <span class="json-key">"checkboxLabel"</span>: <span class="json-str">"I have read and agree to the rules"</span>,
+  <span class="json-key">"agreeButtonLabel"</span>: <span class="json-str">"Enter Server"</span>,
+  <span class="json-key">"declineButtonLabel"</span>: <span class="json-str">"I Do Not Agree"</span>,
+  <span class="json-key">"mustCheckWarning"</span>: <span class="json-str">"You must check the box below to agree to the rules!"</span>,
+  <span class="json-key">"kickMessage"</span>: <span class="json-str">"You must agree to the server rules to play here."</span>,
+  <span class="json-key">"timeoutKickMessage"</span>: <span class="json-str">"You did not respond to the rules prompt in time."</span>,
+  <span class="json-key">"welcomeMessage"</span>: <span class="json-str">"&amp;aThanks for agreeing to the rules. Have fun!"</span>
+}</code></pre>
+
+<div class="table-wrap">
+<table>
+  <tr><th>Setting</th><th>What it does</th></tr>
+  <tr><td><code>rules</code></td><td>One entry per line. Supports <code>&amp;</code> color codes: <code>&amp;c</code> red, <code>&amp;e</code> yellow, <code>&amp;a</code> green, <code>&amp;f</code> white, <code>&amp;l</code> bold, <code>&amp;o</code> italic.</td></tr>
+  <tr><td><code>displayMode</code></td><td><code>"once"</code> — players agree a single time, forever. <code>"interval"</code> — the rules pop up again every <code>intervalDays</code>.</td></tr>
+  <tr><td><code>intervalDays</code></td><td>How often players must re-agree in interval mode. Fractions work: <code>0.5</code> = every 12 hours, <code>3</code> = every 3 days, <code>7</code> = weekly.</td></tr>
+  <tr><td><code>repromptWhenRulesChange</code></td><td>When <code>true</code>, editing the title or rules makes everyone agree again on their next join — even in <code>once</code> mode.</td></tr>
+  <tr><td><code>agreeTimeoutSeconds</code></td><td>Kick players who never respond to the prompt after this many seconds. <code>0</code> disables the timeout.</td></tr>
+  <tr><td><code>blockChatWhilePending</code></td><td>When <code>true</code>, players can't chat or run commands until they've agreed.</td></tr>
+  <tr><td><code>welcomeMessage</code></td><td>Chat message sent right after agreeing. Set to <code>""</code> to disable.</td></tr>
+</table>
+</div>
+
+<div class="callout">
+  <p><strong>Display modes at a glance:</strong> use <code>"once"</code> for a classic "accept the rules on first join" gate. Use <code>"interval"</code> with <code>intervalDays: 7</code> to remind everyone weekly, or <code>3</code> for every few days. Either way, changing the rules text re-prompts everyone (unless you turn <code>repromptWhenRulesChange</code> off).</p>
+</div>
+
+<h2 id="commands">Admin commands</h2>
+<p class="section-intro">All commands require operator permission (level 2+).</p>
+
+<div class="table-wrap">
+<table>
+  <tr><th>Command</th><th>Effect</th></tr>
+  <tr><td><code>/pledgegate reload</code></td><td>Reloads the config without a restart. If the rules changed, players re-agree on their next join.</td></tr>
+  <tr><td><code>/pledgegate preview</code></td><td>Shows you the rules dialog without affecting your own acceptance — great for checking formatting.</td></tr>
+  <tr><td><code>/pledgegate reset all</code></td><td>Wipes everyone's acceptance. Online players are re-prompted immediately.</td></tr>
+  <tr><td><code>/pledgegate reset &lt;player&gt;</code></td><td>Wipes one player's acceptance; if they're online, they're re-prompted immediately.</td></tr>
+</table>
+</div>
+
+<h2 id="faq">Frequently asked questions</h2>
+
+<div class="faq-item">
+  <h3>Is PledgeGate a plugin or a mod?</h3>
+  <p>PledgeGate is a Fabric mod, but it fills the same role a rules plugin fills on Bukkit, Spigot, or Paper servers: it gates entry behind a rules agreement. If you run a Fabric server and want a rules plugin, this is the equivalent — one jar in the <code>mods/</code> folder.</p>
+</div>
+<div class="faq-item">
+  <h3>Do players need to install anything?</h3>
+  <p>No. The rules screen is native Minecraft UI streamed from the server. Vanilla launcher, vanilla client — it just works.</p>
+</div>
+<div class="faq-item">
+  <h3>What happens if a player declines the rules?</h3>
+  <p>They are kicked from the server with a message you control. The same happens if they ignore the prompt past a configurable timeout (5 minutes by default).</p>
+</div>
+<div class="faq-item">
+  <h3>Can the rules pop up periodically instead of just once?</h3>
+  <p>Yes. Set <code>displayMode</code> to <code>"interval"</code> and choose how often with <code>intervalDays</code> — every 3 days, weekly, or any fraction like <code>0.5</code> for twice a day.</p>
+</div>
+<div class="faq-item">
+  <h3>What happens when I change the rules?</h3>
+  <p>By default every player must agree to the new rules on their next join. You can turn this off with the <code>repromptWhenRulesChange</code> setting.</p>
+</div>
+<div class="faq-item">
+  <h3>Where are rule acceptances stored?</h3>
+  <p>In <code>config/pledgegate/acceptances.json</code> on the server — each player's UUID, name, timestamp, and which version of the rules they accepted. Delete the file or use <code>/pledgegate reset</code> to clear them.</p>
+</div>
+
+<div class="callout warn" style="margin-top: 32px;">
+  <p><strong>Requirements:</strong> Minecraft 26.1.2 – 26.2 · Fabric Loader 0.19.3+ · Fabric API · Java 25. The mod also loads harmlessly in single-player, where it does nothing.</p>
+</div>
+
+<footer>
+  PledgeGate · MIT License · Built for Fabric &amp; Minecraft 26.1.2 – 26.2<br>
+  <a href="pledgegate-1.1.1.jar" download>Download the mod</a> · <a href="https://modrinth.com/mod/fabric-api">Get Fabric API</a>
+</footer>
+
+</main>
+</body>
+</html>
