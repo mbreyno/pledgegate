@@ -20,7 +20,7 @@ Sign in at [modrinth.com](https://modrinth.com) → click the **+** (Create a pr
 - **Categories**: Management, Social, Utility
 - **Environment**: Client = **Unsupported**, Server = **Required**
 - **License**: MIT
-- **Links**: Website → `https://pledgegate.vercel.app`, Source → `https://github.com/mbreyno/pledgegate`
+- **Links**: Website → `https://pledgegate.com`, Source → `https://github.com/mbreyno/pledgegate`
 
 ## 3. Description
 
@@ -57,5 +57,5 @@ Click **Submit for review**. Moderators check new projects (usually within 48 ho
 
 ## After it's live
 
-- Add the Modrinth link to the website (I can add a badge/button to pledgegate.vercel.app — just ask)
+- Add the Modrinth link to the website (I can add a badge/button to pledgegate.com — just ask)
 - Future releases: Versions → Create a version → upload the new jar. Modrinth handles update notifications for users of launchers like Prism/ATLauncher.

@@ -38,4 +38,4 @@ PledgeGate uses Minecraft's built-in dialog system, so completely vanilla client
 
 ## 📖 Full documentation
 
-Complete config reference and editing guide: **[pledgegate.vercel.app](https://pledgegate.vercel.app)**
+Complete config reference and editing guide: **[pledgegate.com](https://pledgegate.com)**

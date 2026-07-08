@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://pledgegate.vercel.app/sitemap.xml
+Sitemap: https://www.pledgegate.com/sitemap.xml

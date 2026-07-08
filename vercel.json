@@ -1,5 +1,13 @@
 {
 	"buildCommand": null,
 	"outputDirectory": "website",
-	"framework": null
+	"framework": null,
+	"redirects": [
+		{
+			"source": "/:path*",
+			"has": [{ "type": "host", "value": "pledgegate.vercel.app" }],
+			"destination": "https://www.pledgegate.com/:path*",
+			"permanent": true
+		}
+	]
 }
