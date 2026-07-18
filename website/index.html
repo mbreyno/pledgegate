@@ -127,6 +127,24 @@
   .faq-item h3 { font-size: 17px; margin-bottom: 6px; }
   .faq-item h3::before { content: "Q. "; color: var(--accent); font-family: ui-monospace, Menlo, monospace; }
   .faq-item p { color: var(--text-dim); font-size: 15.5px; }
+  .shot { margin: 64px 0 0; }
+  .shot img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 14px;
+    border: 1px solid var(--accent-dim);
+    box-shadow:
+      0 0 0 1px rgba(85, 217, 124, 0.12),
+      0 0 90px rgba(85, 217, 124, 0.10),
+      0 18px 48px rgba(0, 0, 0, 0.55);
+  }
+  .shot figcaption {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 14px;
+    margin-top: 14px;
+  }
   .logo .gate { color: var(--accent); }
   .tagline { font-size: 20px; color: var(--text-dim); margin-top: 12px; max-width: 540px; margin-left: auto; margin-right: auto; }
   .badges { margin-top: 24px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
@@ -306,6 +324,11 @@
 </header>
 
 <main>
+
+<figure class="shot">
+  <img src="screenshot-ingame.webp" alt="PledgeGate's server rules screen shown in-game on a vanilla Minecraft 26.2 client, with an agreement checkbox and Enter Server button" width="1600" height="999">
+  <figcaption>The real thing — PledgeGate's rules screen on a completely vanilla Minecraft 26.2 client.</figcaption>
+</figure>
 
 <h2 id="features">Features</h2>
 <div class="features">
